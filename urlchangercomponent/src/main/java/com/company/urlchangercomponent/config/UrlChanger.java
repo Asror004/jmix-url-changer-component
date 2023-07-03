@@ -13,19 +13,28 @@ import java.util.function.Consumer;
 
 public class UrlChanger {
     private final DialogWindows dialogWindows;
+    private final HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean;
+    private UrlChangerConfig config;
 
-    public UrlChanger(List<UrlChangerConfig> configs, DialogWindows dialogWindows) {
+    public UrlChanger(List<UrlChangerConfig> configs, DialogWindows dialogWindows,
+                      HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
         this.dialogWindows = dialogWindows;
+        this.paramsBean = paramsBean;
         configs.forEach(this::go);
     }
 
-    public UrlChanger(UrlChangerConfig config, DialogWindows dialogWindows) {
+    public UrlChanger(UrlChangerConfig config, DialogWindows dialogWindows,
+                      HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
         this.dialogWindows = dialogWindows;
+        this.paramsBean = paramsBean;
         go(config);
     }
 
     private void go(UrlChangerConfig config) {
+        this.config = config;
+
         Button button = config.getButton();
+        paramsBean.put(config.getOpenViewInDialog(), config.getQueryParams());
 
         button.addClickListener(listener -> button.getUI().ifPresent(ui -> {
             Page page = ui.getPage();
@@ -48,7 +57,14 @@ public class UrlChanger {
 
         StringJoiner sj = new StringJoiner("&");
 
-        queryParams.keySet().forEach(key -> sj.add(key + "=" + queryParams.get(key)));
+        Map<String, String> headers = getHeaders(referer);
+
+        for (String key : queryParams.keySet()) {
+            if (headers.containsKey(key))
+                referer = removeKeyInReferer(referer, key);
+
+            sj.add(key + "=" + queryParams.get(key));
+        }
 
         return referer.concat(sj.toString());
     }
@@ -56,7 +72,8 @@ public class UrlChanger {
     private void openDialogView(UrlChangerConfig config) {
 
         getWindowBuilder(config.getView(), config.getOpenViewInDialog())
-                .withAfterCloseListener(afterCloseEvent -> close(config.getParamKeyList(), config.getView().getUI()))
+                .withAfterCloseListener(afterCloseEvent -> close(new ArrayList<>(paramsBean.get(config.getOpenViewInDialog()).keySet()),
+                        config.getView().getUI()))
                 .open();
     }
 
@@ -68,20 +85,31 @@ public class UrlChanger {
         String referer = VaadinService.getCurrentRequest().getHeader("referer");
 
         for (String key : keyList) {
-            referer = referer.replaceAll(key + "=[a-zA-Z0-9=]*&?" ,"");
+            referer = removeKeyInReferer(referer, key);
         }
+
         String clearedUrl = referer;
         ui.ifPresent(uiEl -> uiEl.getPage().getHistory().pushState(null, clearedUrl));
     }
-    public void initViews(StandardView view, List<ViewWithParameters> openViews) {
+
+    private String removeKeyInReferer(String referer, String key) {
+        return referer.replaceAll(key + "=[a-zA-Z0-9=]*&?", "");
+    }
+
+    public void initViews(List<Class<? extends StandardView>> openViews) {
         String url = VaadinService.getCurrentRequest().getHeader("referer");
         Map<String, String> headers = getHeaders(url);
 
+        StandardView view = config.getView();
+
         openViews.forEach(openView -> {
-            for (String key : openView.getQueryParams()) {
+            List<String> params = new ArrayList<>(paramsBean.get(openView).keySet());
+
+            for (String key : params) {
                 if (headers.containsKey(key)) {
-                    getWindowBuilder(view, openView.getOpenView()).withAfterCloseListener(closeEvent ->
-                            close(openView.getQueryParams(), view.getUI())
+
+                    getWindowBuilder(view, openView).withAfterCloseListener(closeEvent ->
+                            close(params, view.getUI())
                     ).open();
                     break;
                 }
