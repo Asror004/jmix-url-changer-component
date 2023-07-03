@@ -56,7 +56,7 @@ public class UrlChanger {
     private void openDialogView(UrlChangerConfig config) {
 
         getWindowBuilder(config.getView(), config.getOpenViewInDialog())
-                .withAfterCloseListener(afterCloseEvent -> close(config.getQueryParams(), config.getView().getUI()))
+                .withAfterCloseListener(afterCloseEvent -> close(config.getParamKeyList(), config.getView().getUI()))
                 .open();
     }
 
@@ -64,22 +64,21 @@ public class UrlChanger {
         return dialogWindows.view(view, openView);
     }
 
-    private void close(Map<String, String> queryParams, Optional<UI> ui) {
+    private void close(List<String> keyList, Optional<UI> ui) {
         String referer = VaadinService.getCurrentRequest().getHeader("referer");
 
-        for (Map.Entry<String, String> stringStringEntry : queryParams.entrySet()) {
-            referer = referer.replaceAll(stringStringEntry.getKey() + "=" + stringStringEntry.getValue() + "&?", "");
+        for (String key : keyList) {
+            referer = referer.replaceAll(key + "=[a-zA-Z0-9=]*&?" ,"");
         }
         String clearedUrl = referer;
         ui.ifPresent(uiEl -> uiEl.getPage().getHistory().pushState(null, clearedUrl));
     }
-
     public void initViews(StandardView view, List<ViewWithParameters> openViews) {
         String url = VaadinService.getCurrentRequest().getHeader("referer");
         Map<String, String> headers = getHeaders(url);
 
         openViews.forEach(openView -> {
-            for (String key : openView.getQueryParams().keySet()) {
+            for (String key : openView.getQueryParams()) {
                 if (headers.containsKey(key)) {
                     getWindowBuilder(view, openView.getOpenView()).withAfterCloseListener(closeEvent ->
                             close(openView.getQueryParams(), view.getUI())

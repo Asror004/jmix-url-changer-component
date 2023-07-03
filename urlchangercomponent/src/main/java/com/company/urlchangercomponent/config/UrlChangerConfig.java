@@ -3,13 +3,15 @@ package com.company.urlchangercomponent.config;
 import com.vaadin.flow.component.button.Button;
 import io.jmix.flowui.view.StandardView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 public class UrlChangerConfig {
     private Button button;
     private Consumer<Button> consumer;
-    private Map<String, String> queryParams;
+    private Map<String ,String> queryParams;
     private final StandardView view;
     private final Class<? extends StandardView> openViewInDialog;
 
@@ -51,5 +53,10 @@ public class UrlChangerConfig {
 
     public StandardView getView() {
         return view;
+    }
+
+
+    public List<String> getParamKeyList(){
+        return new ArrayList<>(queryParams.keySet());
     }
 }
