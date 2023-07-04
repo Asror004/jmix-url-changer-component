@@ -13,18 +13,18 @@ import java.util.function.Consumer;
 
 public class UrlChanger {
     private final DialogWindows dialogWindows;
-    private final HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean;
+    private final LinkedHashMap<Class<? extends StandardView>, Map<String, String>> paramsBean;
     private UrlChangerConfig config;
 
     public UrlChanger(List<UrlChangerConfig> configs, DialogWindows dialogWindows,
-                      HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
+                      LinkedHashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
         this.dialogWindows = dialogWindows;
         this.paramsBean = paramsBean;
         configs.forEach(this::go);
     }
 
     public UrlChanger(UrlChangerConfig config, DialogWindows dialogWindows,
-                      HashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
+                      LinkedHashMap<Class<? extends StandardView>, Map<String, String>> paramsBean) {
         this.dialogWindows = dialogWindows;
         this.paramsBean = paramsBean;
         go(config);
@@ -34,7 +34,16 @@ public class UrlChanger {
         this.config = config;
 
         Button button = config.getButton();
-        paramsBean.put(config.getOpenViewInDialog(), config.getQueryParams());
+
+        if (Objects.isNull(config.getOpenViewInDialog())) {
+            Map.Entry<Class<? extends StandardView>, Map<String, String>> lastDialogEntry =
+                    paramsBean.entrySet().stream().reduce((first, second) -> second).orElseThrow();
+
+            lastDialogEntry.getValue().putAll(config.getQueryParams());
+
+            paramsBean.put(lastDialogEntry.getKey(), lastDialogEntry.getValue());
+        } else
+            paramsBean.put(config.getOpenViewInDialog(), config.getQueryParams());
 
         button.addClickListener(listener -> button.getUI().ifPresent(ui -> {
             Page page = ui.getPage();

@@ -4,6 +4,7 @@ import com.vaadin.flow.component.button.Button;
 import io.jmix.flowui.view.StandardView;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -11,11 +12,11 @@ import java.util.function.Consumer;
 public class UrlChangerConfig {
     private Button button;
     private Consumer<Button> consumer;
-    private Map<String ,String> queryParams;
+    private LinkedHashMap<String ,String> queryParams;
     private final StandardView view;
     private final Class<? extends StandardView> openViewInDialog;
 
-    public UrlChangerConfig(Button button, Consumer<Button> consumer, Map<String, String> queryParams, StandardView view, Class<? extends StandardView> openViewInDialog) {
+    public UrlChangerConfig(Button button, Consumer<Button> consumer, LinkedHashMap<String, String> queryParams, StandardView view, Class<? extends StandardView> openViewInDialog) {
         this.button = button;
         this.consumer = consumer;
         this.queryParams = queryParams;
@@ -39,11 +40,11 @@ public class UrlChangerConfig {
         this.consumer = consumer;
     }
 
-    public Map<String, String> getQueryParams() {
+    public LinkedHashMap<String, String> getQueryParams() {
         return queryParams;
     }
 
-    public void setQueryParams(Map<String, String> queryParams) {
+    public void setQueryParams(LinkedHashMap<String, String> queryParams) {
         this.queryParams = queryParams;
     }
 
