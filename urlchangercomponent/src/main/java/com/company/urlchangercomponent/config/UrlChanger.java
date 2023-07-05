@@ -35,17 +35,19 @@ public class UrlChanger {
 
         Button button = config.getButton();
 
-        if (Objects.isNull(config.getOpenViewInDialog())) {
-            Map.Entry<Class<? extends StandardView>, Map<String, String>> lastDialogEntry =
-                    paramsBean.entrySet().stream().reduce((first, second) -> second).orElseThrow();
-
-            lastDialogEntry.getValue().putAll(config.getQueryParams());
-
-            paramsBean.put(lastDialogEntry.getKey(), lastDialogEntry.getValue());
-        } else
-            paramsBean.put(config.getOpenViewInDialog(), config.getQueryParams());
+        if (Objects.nonNull(config.getOpenViewInDialog()))
+            paramsBean.put(config.getOpenViewInDialog(), (Map<String, String>) config.getQueryParams().clone());
 
         button.addClickListener(listener -> button.getUI().ifPresent(ui -> {
+            if (Objects.isNull(config.getOpenViewInDialog())) {
+                Map.Entry<Class<? extends StandardView>, Map<String, String>> lastDialogEntry =
+                        paramsBean.entrySet().stream().reduce((first, second) -> second).orElseThrow();
+
+                lastDialogEntry.getValue().putAll(config.getQueryParams());
+
+                paramsBean.put(lastDialogEntry.getKey(), lastDialogEntry.getValue());
+            }
+
             Page page = ui.getPage();
             String referer = VaadinService.getCurrentRequest().getHeader("referer");
 
@@ -105,18 +107,14 @@ public class UrlChanger {
         return referer.replaceAll(key + "=[a-zA-Z0-9=]*&?", "");
     }
 
-    public void initViews(List<Class<? extends StandardView>> openViews) {
-        String url = VaadinService.getCurrentRequest().getHeader("referer");
-        Map<String, String> headers = getHeaders(url);
+    public void initViewsDialog(Map<Class<? extends StandardView>, List<String>> openViews) {
+        Map<String, String> headers = getUrl();
 
         StandardView view = config.getView();
 
-        openViews.forEach(openView -> {
-            List<String> params = new ArrayList<>(paramsBean.get(openView).keySet());
-
+        openViews.forEach((openView, params) -> {
             for (String key : params) {
                 if (headers.containsKey(key)) {
-
                     getWindowBuilder(view, openView).withAfterCloseListener(closeEvent ->
                             close(params, view.getUI())
                     ).open();
@@ -124,6 +122,21 @@ public class UrlChanger {
                 }
             }
         });
+    }
+
+    public void initViews(Map<String, Runnable> openViews) {
+        Map<String, String> headers = getUrl();
+
+        openViews.forEach((key, value) -> {
+            if (headers.containsKey(key))
+                value.run();
+        });
+    }
+
+    private Map<String, String> getUrl() {
+        String url = VaadinService.getCurrentRequest().getHeader("referer");
+        Map<String, String> headers = getHeaders(url);
+        return headers;
     }
 
     private Map<String, String> getHeaders(String url) {

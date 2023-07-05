@@ -6,7 +6,6 @@ import io.jmix.flowui.view.StandardView;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class UrlChangerConfig {

@@ -15,6 +15,25 @@ dependencies {
     testRuntimeOnly 'org.hsqldb:hsqldb'
 }
 
+//publishing {
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/" + System.getenv("https://github.com/Asror004/jmix-url-changer-component.git"))
+//            credentials {
+//                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+//                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+//            }
+//        }
+//    }
+//    publications {
+//        javaMaven(MavenPublication) {
+//            artifactId = archName
+//            from components.java
+//        }
+//    }
+//}
+
 test {
     useJUnitPlatform()
 }
