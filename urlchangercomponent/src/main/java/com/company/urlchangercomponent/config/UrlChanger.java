@@ -11,8 +11,18 @@ import io.jmix.flowui.view.builder.WindowBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 
+/**
+ * This class mainly serves to change the url when the dialog is opened.
+ * Open dialogs can only be view classes
+ */
 public class UrlChanger {
+    /**
+     * DialogWindows.class is needed to open a dialog
+     */
     private final DialogWindows dialogWindows;
+    /**
+     * Bean should have a scope session
+     */
     private final LinkedHashMap<Class<? extends StandardView>, Map<String, String>> paramsBean;
     private UrlChangerConfig config;
 
@@ -59,6 +69,12 @@ public class UrlChanger {
         }));
     }
 
+    /**
+     * To add new query parameters to the current URL
+     * @param queryParams New query parameters to add to the URL
+     * @param referer The current URL
+     * @return The newly changed URL
+     */
     private String getUrl(Map<String, String> queryParams, String referer) {
         referer += (!referer.contains("?")) ? "?" : "&";
 
@@ -76,6 +92,10 @@ public class UrlChanger {
         return referer.concat(sj.toString());
     }
 
+    /**
+     * To open a new dialog
+     * @param config UrlChangerConfig.class to get views
+     */
     private void openDialogView(UrlChangerConfig config) {
 
         getWindowBuilder(config.getView(), config.getOpenViewInDialog())
@@ -99,12 +119,23 @@ public class UrlChanger {
         ui.ifPresent(uiEl -> uiEl.getPage().getHistory().pushState(null, clearedUrl));
     }
 
+    /**
+     * To remove unnecessary parameters from the URL for now
+     * @param referer Current URL
+     * @param key The Query parameter to delete
+     * @return The newly changed URL
+     */
     private String removeKeyInReferer(String referer, String key) {
         return referer.replaceAll(key + "=[a-zA-Z0-9=]*&?", "");
     }
 
+    /**
+     * This method is needed to register popup dialog views. You must use this method only on the first view!
+     * @param view First view
+     * @param openViews Open dialog views together with query parameters
+     */
     public void initViewsDialog(StandardView view, Map<Class<? extends StandardView>, List<String>> openViews) {
-        Map<String, String> headers = getUrl();
+        Map<String, String> headers = getHeaders(null);
 
         openViews.forEach((openView, params) -> {
             for (String key : params) {
@@ -118,22 +149,30 @@ public class UrlChanger {
         });
     }
 
-    public void initViews(Map<String, Runnable> openViews) {
-        Map<String, String> headers = getUrl();
+    /**
+     * This method is for cases where the URL changes but the dialog does not open.
+     * This method can be used in any dialog view.
+     * @param params The method accepts a map with key of String and some Runnable action to its value.
+     * Key of the map is responsible for query parameters in the current url, and the Runnable action associated with the query params is run whenever there is that key.
+     */
+    public void initView(Map<String, Runnable> params) {
+        Map<String, String> headers = getHeaders(null);
 
-        openViews.forEach((key, value) -> {
+        params.forEach((key, value) -> {
             if (Objects.nonNull(value) && headers.containsKey(key))
                 value.run();
         });
     }
 
-    private Map<String, String> getUrl() {
-        String url = VaadinService.getCurrentRequest().getHeader("referer");
-        Map<String, String> headers = getHeaders(url);
-        return headers;
-    }
-
+    /**
+     * This method returns any given URL and query parameters as a Map view
+     * @param url If no URL is given, URL will be equal to current URL
+     * @return Parameters map
+     */
     private Map<String, String> getHeaders(String url) {
+        if (Objects.isNull(url))
+            url = VaadinService.getCurrentRequest().getHeader("referer");
+
         Map<String, String> res = new HashMap<>();
         String[] split = url.substring(url.indexOf("?") + 1).split("&");
 

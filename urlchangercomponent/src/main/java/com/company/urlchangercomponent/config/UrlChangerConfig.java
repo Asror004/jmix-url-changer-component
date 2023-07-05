@@ -10,10 +10,26 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class UrlChangerConfig {
+    /**
+     * When this button is clicked, the URL will change
+     */
     private Button button;
+    /**
+     * Additional user codes executed when the button is clicked
+     */
     private Consumer<Button> consumer;
+    /**
+     * Newly added query parameters
+     */
     private LinkedHashMap<String ,String> queryParams;
+    /**
+     * If the dialog opens, it opens to this view.
+     * It should never be null because it is always used!
+     */
     private final StandardView view;
+    /**
+     * The dialog view that should open. If the dialog does not open, you can null it.
+     */
     private final Class<? extends StandardView> openViewInDialog;
 
     public UrlChangerConfig(Button button, Consumer<Button> consumer, LinkedHashMap<String, String> queryParams, @NonNull StandardView view, Class<? extends StandardView> openViewInDialog) {
