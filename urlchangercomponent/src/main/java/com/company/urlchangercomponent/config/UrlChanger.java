@@ -30,6 +30,7 @@ public class UrlChanger {
         go(config);
     }
 
+    @SuppressWarnings("unchecked")
     private void go(UrlChangerConfig config) {
         this.config = config;
 
@@ -40,12 +41,7 @@ public class UrlChanger {
 
         button.addClickListener(listener -> button.getUI().ifPresent(ui -> {
             if (Objects.isNull(config.getOpenViewInDialog())) {
-                Map.Entry<Class<? extends StandardView>, Map<String, String>> lastDialogEntry =
-                        paramsBean.entrySet().stream().reduce((first, second) -> second).orElseThrow();
-
-                lastDialogEntry.getValue().putAll(config.getQueryParams());
-
-                paramsBean.put(lastDialogEntry.getKey(), lastDialogEntry.getValue());
+                paramsBean.get(config.getView().getClass()).putAll(config.getQueryParams());
             }
 
             Page page = ui.getPage();
@@ -107,10 +103,8 @@ public class UrlChanger {
         return referer.replaceAll(key + "=[a-zA-Z0-9=]*&?", "");
     }
 
-    public void initViewsDialog(Map<Class<? extends StandardView>, List<String>> openViews) {
+    public void initViewsDialog(StandardView view, Map<Class<? extends StandardView>, List<String>> openViews) {
         Map<String, String> headers = getUrl();
-
-        StandardView view = config.getView();
 
         openViews.forEach((openView, params) -> {
             for (String key : params) {
@@ -128,7 +122,7 @@ public class UrlChanger {
         Map<String, String> headers = getUrl();
 
         openViews.forEach((key, value) -> {
-            if (headers.containsKey(key))
+            if (Objects.nonNull(value) && headers.containsKey(key))
                 value.run();
         });
     }

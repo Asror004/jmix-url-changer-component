@@ -2,6 +2,7 @@ package com.company.urlchangercomponent.config;
 
 import com.vaadin.flow.component.button.Button;
 import io.jmix.flowui.view.StandardView;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -15,7 +16,7 @@ public class UrlChangerConfig {
     private final StandardView view;
     private final Class<? extends StandardView> openViewInDialog;
 
-    public UrlChangerConfig(Button button, Consumer<Button> consumer, LinkedHashMap<String, String> queryParams, StandardView view, Class<? extends StandardView> openViewInDialog) {
+    public UrlChangerConfig(Button button, Consumer<Button> consumer, LinkedHashMap<String, String> queryParams, @NonNull StandardView view, Class<? extends StandardView> openViewInDialog) {
         this.button = button;
         this.consumer = consumer;
         this.queryParams = queryParams;
